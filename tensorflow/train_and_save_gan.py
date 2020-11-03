@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # MNIST Dataset parameters.
-num_features = 784 # data features (img shape: 28*28).
+num_features = 3072 # data features (img shape: 32*32*3).
 
 # Training parameters.
 lr_generator = 0.0002
@@ -19,12 +19,13 @@ display_step = 100
 noise_dim = 100 # Noise data points.
 
 # Prepare MNIST data.
-from tensorflow.keras.datasets import mnist
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
+from tensorflow.keras.datasets import cifar10
+(x_train, y_train), (x_test, y_test) = cifar10.load_data()
 # Convert to float32.
 x_train, x_test = np.array(x_train, np.float32), np.array(x_test, np.float32)
 # Normalize images value from [0, 255] to [0, 1].
 x_train, x_test = x_train / 255., x_test / 255.
+
 
 # Use tf.data API to shuffle and batch data.
 train_data = tf.data.Dataset.from_tensor_slices((x_train, y_train))
@@ -35,11 +36,13 @@ class Generator(Model):
     # Set layers.
     def __init__(self):
         super(Generator, self).__init__()
-        self.fc1 = layers.Dense(7 * 7 * 128)
+        self.fc1 = layers.Dense(4 * 4 * 256)
         self.bn1 = layers.BatchNormalization()
-        self.conv2tr1 = layers.Conv2DTranspose(64, 5, strides=2, padding='SAME')
+        self.conv2tr1 = layers.Conv2DTranspose(128, 4, strides=2, padding='SAME')
         self.bn2 = layers.BatchNormalization()
-        self.conv2tr2 = layers.Conv2DTranspose(1, 5, strides=2, padding='SAME')
+        self.conv2tr2 = layers.Conv2DTranspose(128, 4, strides=2, padding='SAME')
+        self.bn3 = layers.BatchNormalization()
+        self.conv2tr3 = layers.Conv2DTranspose(3, 4, strides=2, padding='SAME')
 
     # Set forward pass.
     def call(self, x, is_training=False):
@@ -48,13 +51,17 @@ class Generator(Model):
         x = tf.nn.leaky_relu(x)
         # Reshape to a 4-D array of images: (batch, height, width, channels)
         # New shape: (batch, 7, 7, 128)
-        x = tf.reshape(x, shape=[-1, 7, 7, 128])
+        x = tf.reshape(x, shape=[-1, 4, 4, 256])
         # Deconvolution, image shape: (batch, 14, 14, 64)
         x = self.conv2tr1(x)
         x = self.bn2(x, training=is_training)
         x = tf.nn.leaky_relu(x)
-        # Deconvolution, image shape: (batch, 28, 28, 1)
+        # Deconvolution, image shape: (batch, 14, 14, 64)
         x = self.conv2tr2(x)
+        x = self.bn3(x, training=is_training)
+        x = tf.nn.leaky_relu(x)
+        # Deconvolution, image shape: (batch, 28, 28, 1)
+        x = self.conv2tr3(x)
         x = tf.nn.tanh(x)
         return x
 
@@ -77,7 +84,7 @@ class Discriminator(Model):
 
     # Set forward pass.
     def call(self, x, is_training=False):
-        x = tf.reshape(x, [-1, 28, 28, 1])
+        x = tf.reshape(x, [-1, 32, 32, 3])
         x = self.conv1(x)
         x = self.bn1(x, training=is_training)
         x = tf.nn.leaky_relu(x)
