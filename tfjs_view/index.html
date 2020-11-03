@@ -29,9 +29,9 @@ async function init(){
   setInterval(function(){ fpsOut.innerHTML = fps.toFixed(1) + "fps"; }, 1000); 
 
   async function animate() {
-  	z = Array.from({length: 100}, () => Math.floor((Math.random()-0.5) * 4.0));
+  	z = Array.from({length: 100}, () => Math.floor((Math.random()-0.5) * 2.0));
     prediction = model.predict(tf.tensor([z]));
-	img = await prediction.data()
+	  img = await prediction.data()
 
   	var imageData = draw.getImageData(0,0,32,32);
 

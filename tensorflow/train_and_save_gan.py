@@ -40,7 +40,7 @@ class Generator(Model):
         self.bn1 = layers.BatchNormalization()
         self.conv2tr1 = layers.Conv2DTranspose(128, 4, strides=2, padding='SAME')
         self.bn2 = layers.BatchNormalization()
-        self.conv2tr2 = layers.Conv2DTranspose(128, 4, strides=2, padding='SAME')
+        self.conv2tr2 = layers.Conv2DTranspose(64, 4, strides=2, padding='SAME')
         self.bn3 = layers.BatchNormalization()
         self.conv2tr3 = layers.Conv2DTranspose(3, 4, strides=2, padding='SAME')
 
