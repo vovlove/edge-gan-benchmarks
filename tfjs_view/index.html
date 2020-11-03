@@ -22,7 +22,7 @@ async function init(){
   const draw = canvas.getContext("2d");
 
   async function drawFrame() {
-  	z = Array.from({length: 100}, () => Math.floor((Math.random()-0.5) * 2.0));
+  	z = Array.from({length: 100}, () => Math.floor((Math.random()-0.5) * 4.0));
     prediction = model.predict(tf.tensor([z]));
 	img = await prediction.data()
 
@@ -34,7 +34,7 @@ async function init(){
 	    imageData.data[i+1] = (1.0 + img[j+1]) * 127.0
 	    imageData.data[i+2] = (1.0 + img[j+2]) * 127.0
 	    imageData.data[i+3] = 255
-    	j+=1
+    	j+=3
 	}
   	draw.putImageData(imageData,0,0);
   } 
