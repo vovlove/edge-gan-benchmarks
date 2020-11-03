@@ -1,0 +1,60 @@
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"> </script>
+</head>
+
+<body>
+	<span id="fps"></span>
+	<br>
+	<canvas width=28 height=28 id="augmented_canvas" style="width:300px; height:300px;"></canvas>
+<script>
+async function init(){
+
+  // load model
+  model = await tf.loadGraphModel('./model.json');
+
+  // canvas
+  const canvas = document.getElementById("augmented_canvas");
+  const draw = canvas.getContext("2d");
+
+  async function drawFrame() {
+  	z = Array.from({length: 100}, () => Math.floor((Math.random()-0.5) * 2.0));
+    prediction = model.predict(tf.tensor([z]));
+	img = await prediction.data()
+
+  	var imageData = draw.getImageData(0,0,28,28);
+  	for (var i=0;i<imageData.data.length;i+=4) {
+	    var avg = (0.5 + img[i/4]) * 255.0
+	    imageData.data[i] = avg
+	    imageData.data[i+1] = avg
+	    imageData.data[i+2] = avg
+	    imageData.data[i+3] = 255
+	}
+  	draw.putImageData(imageData,0,0);
+  } 
+
+
+  var fps = 0, now, lastUpdate = (new Date)*1;
+  var fpsFilter = 50;
+
+  var fpsOut = document.getElementById('fps');
+	setInterval(function(){
+	  fpsOut.innerHTML = fps.toFixed(1) + "fps";
+	}, 1000); 
+
+  while(true) {
+    await drawFrame();
+    var thisFrameFPS = 1000 / ((now=new Date) - lastUpdate);
+	if (now!=lastUpdate){
+	  fps += (thisFrameFPS - fps) / fpsFilter;
+	  lastUpdate = now;
+	}
+  }
+
+}
+
+init();
+</script>
+</body>
+
+</html>
