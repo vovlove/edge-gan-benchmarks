@@ -18,18 +18,28 @@ display_step = 100
 # Network parameters.
 noise_dim = 100 # Noise data points.
 
-# Prepare MNIST data.
-from tensorflow.keras.datasets import cifar10
-(x_train, y_train), (x_test, y_test) = cifar10.load_data()
-# Convert to float32.
-x_train, x_test = np.array(x_train, np.float32), np.array(x_test, np.float32)
-# Normalize images value from [0, 255] to [0, 1].
-x_train, x_test = x_train / 255., x_test / 255.
+train_data = tf.keras.preprocessing.image_dataset_from_directory(
+  "./dataset",
+  validation_split=0.2,
+  subset="training",
+  seed=123,
+  image_size=(32, 32),
+  batch_size=batch_size)
 
+# # Prepare MNIST data.
+# from tensorflow.keras.datasets import cifar10
+# (x_train, y_train), (x_test, y_test) = cifar10.load_data()
+# # Convert to float32.
+# x_train, x_test = np.array(x_train, np.float32), np.array(x_test, np.float32)
+# # Normalize images value from [0, 255] to [0, 1].
+# x_train, x_test = x_train / 255., x_test / 255.
+normalization_layer = tf.keras.layers.experimental.preprocessing.Rescaling(1./255)
+train_data = train_data.map(lambda x, y: (normalization_layer(x), y))
 
 # Use tf.data API to shuffle and batch data.
-train_data = tf.data.Dataset.from_tensor_slices((x_train, y_train))
-train_data = train_data.repeat().shuffle(10000).batch(batch_size).prefetch(1)
+# train_data = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+train_data = train_data.apply(tf.data.experimental.unbatch())
+train_data = train_data.repeat().shuffle(100).batch(batch_size, drop_remainder=True)
 
 # Create TF Model.
 class Generator(Model):

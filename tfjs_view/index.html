@@ -3,7 +3,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"> </script>
 <style>
 	*, body { margin:0; padding:0; }
-	#fps { position:absolute; top:0; left:0; color:red; }
+	#fps { position:absolute; bottom:0; right:0; color:red; font-family: monospace}
 	#augmented_canvas { position:absolute; top:0; left:0; width:100%; height:100%; }
 </style>
 </head>
@@ -28,8 +28,24 @@ async function init(){
   var fpsOut = document.getElementById('fps');
   setInterval(function(){ fpsOut.innerHTML = fps.toFixed(1) + "fps"; }, 1000); 
 
+  z1 = Array.from({length: 100}, () => Math.floor((Math.random()-0.5) * 4.0));
+  z2 = Array.from({length: 100}, () => Math.floor((Math.random()-0.5) * 4.0));
+
+  state = 0.0
   async function animate() {
-  	z = Array.from({length: 100}, () => Math.floor((Math.random()-0.5) * 4.0));
+  	// z = Array.from({length: 100}, () => Math.floor((Math.random()-0.5) * 4.0));
+    z = Array.from({length: 100}, () => 0.0);
+    for (var i=0;i<z.length;i++) {
+      z[i] = (z1[i] * (1-state)) + (z2[i] * (state)) 
+    }
+    state += 0.05
+
+    if (state>1.0) {
+      z1 = z2
+      z2 = Array.from({length: 100}, () => Math.floor((Math.random()-0.5) * 4.0));
+      state = 0.0
+    }
+
     prediction = model.predict(tf.tensor([z]));
 	  img = await prediction.data()
 
